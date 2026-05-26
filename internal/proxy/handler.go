@@ -199,9 +199,20 @@ func buildTargetURL(baseURL string, r *http.Request) (string, error) {
 }
 
 func isAllowedProxyPath(path string) bool {
-	allowedPrefixes := []string{
+	allowedExactPaths := []string{
 		"/proxy/health",
 		"/proxy/ready",
+		"/proxy/internal/system/status",
+		"/proxy/internal/cache/stats",
+	}
+
+	for _, allowedPath := range allowedExactPaths {
+		if path == allowedPath {
+			return true
+		}
+	}
+
+	allowedPrefixes := []string{
 		"/proxy/v1/accounts/",
 		"/proxy/v1/transactions/",
 		"/proxy/v1/merchants/",
@@ -214,18 +225,6 @@ func isAllowedProxyPath(path string) bool {
 	}
 
 	return false
-}
-
-func copyRequestHeaders(dst, src http.Header) {
-	for key, values := range src {
-		if shouldSkipRequestHeader(key) {
-			continue
-		}
-
-		for _, value := range values {
-			dst.Add(key, value)
-		}
-	}
 }
 
 func copyResponseHeaders(dst, src http.Header) {
