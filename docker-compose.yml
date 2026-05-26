@@ -1,0 +1,15 @@
+services:
+  simulator-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dante-simulator-api:local
+    container_name: dante-simulator-api
+    ports:
+      - "${APP_PORT:-8090}:8090"
+    environment:
+      APP_ADDR: "${APP_ADDR:-:8090}"
+      DANTE_BASE_URL: "${DANTE_BASE_URL}"
+      LEGACY_BASE_URL: "${LEGACY_BASE_URL:-https://legacy.litegral.com}"
+      HTTP_CLIENT_TIMEOUT_SECONDS: "${HTTP_CLIENT_TIMEOUT_SECONDS:-30}"
+    restart: unless-stopped
