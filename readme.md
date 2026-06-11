@@ -83,6 +83,26 @@ GET /profiles
 ANY /proxy/*
 ```
 
+### Direct Legacy
+
+Forward langsung ke `LEGACY_BASE_URL` tanpa melewati DANTE Middleware:
+
+```http
+ANY /legacy/*
+```
+
+Prefix `/legacy` akan dipotong sebelum request dikirim ke legacy backend. Contoh:
+
+```http
+POST /legacy/axis2/services/BankService
+```
+
+Akan diteruskan ke:
+
+```http
+{LEGACY_BASE_URL}/axis2/services/BankService
+```
+
 Contoh endpoint:
 
 ```http
@@ -91,6 +111,8 @@ GET /proxy/v1/transactions/{transactionId}
 GET /proxy/v1/transactions/{transactionId}/status
 GET /proxy/v1/accounts/{accountId}/transactions
 GET /proxy/internal/system/status
+POST /legacy/axis2/services/BankService
+GET /legacy/axis2/services/BankService?wsdl
 ```
 
 ## Request Header
@@ -125,6 +147,17 @@ curl -i \
   -H "X-Use-Dante: false" \
   -H "X-Network-Profile: 3g" \
   http://localhost:8090/proxy/v1/merchants/MRC001
+```
+
+### Direct Legacy SOAP
+
+```bash
+curl -i \
+  -H "Content-Type: text/xml; charset=utf-8" \
+  -H "SOAPAction: balance" \
+  -H "X-Network-Profile: 4g" \
+  --data '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://BankService.services.axis2"><soapenv:Header/><soapenv:Body><ns:balance><ns:args0>2623860486223779</ns:args0><ns:args1>123456</ns:args1></ns:balance></soapenv:Body></soapenv:Envelope>' \
+  http://localhost:8090/legacy/axis2/services/BankService
 ```
 
 ## Response Header

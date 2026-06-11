@@ -43,14 +43,22 @@ func NewHandler(cfg config.Config, client *http.Client) *Handler {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.serve(w, r, "/proxy", false)
+}
+
+func (h *Handler) ServeLegacyHTTP(w http.ResponseWriter, r *http.Request) {
+	h.serve(w, r, "/legacy", true)
+}
+
+func (h *Handler) serve(w http.ResponseWriter, r *http.Request, routePrefix string, forceLegacy bool) {
 	start := time.Now()
 
-	if !isAllowedProxyPath(r.URL.Path) {
+	if !forceLegacy && !isAllowedProxyPath(r.URL.Path) {
 		writeJSONError(w, http.StatusForbidden, "proxy_path_not_allowed", "this path is not allowed by simulator")
 		return
 	}
 
-	useDante := parseUseDante(r)
+	useDante := parseUseDante(r) && !forceLegacy
 	networkProfileName := parseNetworkProfile(r)
 	networkProfile := profiles.Get(networkProfileName)
 
@@ -62,7 +70,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		targetBaseURL = h.cfg.DanteBaseURL
 	}
 
-	targetURL, err := buildTargetURL(targetBaseURL, r)
+	targetURL, err := buildTargetURL(targetBaseURL, r, routePrefix)
 	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid_target_url", err.Error())
 		return
@@ -173,13 +181,13 @@ func parseNetworkProfile(r *http.Request) string {
 	return value
 }
 
-func buildTargetURL(baseURL string, r *http.Request) (string, error) {
+func buildTargetURL(baseURL string, r *http.Request, routePrefix string) (string, error) {
 	base, err := url.Parse(baseURL)
 	if err != nil {
 		return "", err
 	}
 
-	path := strings.TrimPrefix(r.URL.Path, "/proxy")
+	path := strings.TrimPrefix(r.URL.Path, routePrefix)
 	if path == "" {
 		path = "/"
 	}

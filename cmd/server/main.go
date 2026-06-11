@@ -30,6 +30,7 @@ func main() {
 	r.Get("/ready", handleReady)
 	r.Get("/profiles", profiles.HandleProfiles)
 	r.HandleFunc("/proxy/*", proxyHandler.ServeHTTP)
+	r.HandleFunc("/legacy/*", proxyHandler.ServeLegacyHTTP)
 
 	log.Printf("simulator api listening on %s", cfg.AppAddr)
 	log.Printf("dante target: %s", cfg.DanteBaseURL)
